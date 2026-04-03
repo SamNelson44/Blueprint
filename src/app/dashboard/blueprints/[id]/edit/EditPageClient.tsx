@@ -48,9 +48,14 @@ async function saveBlueprintToDb(
   }
 
   if (nodes.length > 0) {
+    // Strip DB-managed columns (created_at, updated_at) so Supabase doesn't
+    // receive null for those fields on new nodes that were created client-side.
+    const nodeRows = nodes.map(({ id, blueprint_id, order_index, title, content_markdown, type, url }) => ({
+      id, blueprint_id, order_index, title, content_markdown, type, url: url ?? null,
+    }));
     const { error: nodesError } = await supabase
       .from("nodes")
-      .upsert(nodes, { onConflict: "id" });
+      .upsert(nodeRows, { onConflict: "id" });
     if (nodesError) throw new Error(nodesError.message);
   }
 
@@ -98,6 +103,7 @@ export function EditPageClient({ blueprint, initialNodes, userId }: EditPageClie
       title: "",
       content_markdown: "",
       type: "task",
+      url: null,
     };
     setNodes((prev) => [...prev, newNode]);
     setSelectedId(newNode.id);

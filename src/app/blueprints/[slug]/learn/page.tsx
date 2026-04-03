@@ -58,19 +58,23 @@ async function getLiveData(slug: string): Promise<{
 
   if (!enrollment) redirect(`/blueprints/${slug}`);
 
-  // 4. Fetch nodes and progress in parallel.
-  const [{ data: nodes }, { data: progress }] = await Promise.all([
-    supabase
-      .from("nodes")
-      .select("*")
-      .eq("blueprint_id", blueprint.id)
-      .order("order_index"),
-    supabase
-      .from("user_progress")
-      .select("node_id")
-      .eq("user_id", user.id)
-      .eq("is_completed", true),
-  ]);
+  // 4. Fetch nodes first, then filter progress to only this blueprint's nodes.
+  const { data: nodes } = await supabase
+    .from("nodes")
+    .select("*")
+    .eq("blueprint_id", blueprint.id)
+    .order("order_index");
+
+  const nodeIds = (nodes ?? []).map((n) => n.id);
+
+  const { data: progress } = nodeIds.length > 0
+    ? await supabase
+        .from("user_progress")
+        .select("node_id")
+        .eq("user_id", user.id)
+        .eq("is_completed", true)
+        .in("node_id", nodeIds)
+    : { data: [] };
 
   const completedIds = (progress ?? []).map((r: { node_id: string }) => r.node_id);
 

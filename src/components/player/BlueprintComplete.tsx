@@ -7,11 +7,13 @@ import { cn } from "@/lib/cn";
 interface BlueprintCompleteProps {
   blueprintTitle: string;
   totalNodes: number;
+  onDismiss: () => void;
 }
 
 export function BlueprintComplete({
   blueprintTitle,
   totalNodes,
+  onDismiss,
 }: BlueprintCompleteProps) {
   const [visible, setVisible] = useState(false);
 
@@ -67,8 +69,8 @@ export function BlueprintComplete({
 
         {/* Actions */}
         <div className="flex flex-wrap items-center justify-center gap-4">
-          <Link
-            href="/dashboard"
+          <button
+            onClick={onDismiss}
             className={[
               "px-6 py-3 font-mono font-bold text-sm uppercase tracking-widest",
               "bg-black text-[#D4FF00] border-4 border-black",
@@ -77,10 +79,10 @@ export function BlueprintComplete({
               "transition-[transform,box-shadow] duration-75",
             ].join(" ")}
           >
-            Back to Dashboard
-          </Link>
+            Review Steps →
+          </button>
           <Link
-            href="/blueprints"
+            href="/dashboard"
             className={[
               "px-6 py-3 font-mono font-bold text-sm uppercase tracking-widest",
               "bg-transparent text-black border-4 border-black",
@@ -89,7 +91,7 @@ export function BlueprintComplete({
               "transition-[transform,box-shadow] duration-75",
             ].join(" ")}
           >
-            Explore More →
+            Back to Dashboard
           </Link>
         </div>
       </div>

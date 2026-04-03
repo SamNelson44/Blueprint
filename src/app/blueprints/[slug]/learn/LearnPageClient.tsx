@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, useEffect, useRef } from "react";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { SidebarNav } from "@/components/player/SidebarNav";
@@ -43,6 +43,20 @@ export function LearnPageClient({
   const isCurrentCompleted = completedIds.has(selectedId);
   const isAllComplete = nodes.length > 0 && completedIds.size >= nodes.length;
 
+  // Show the celebration overlay only when completion is *newly achieved*
+  // during this session — not on initial render (handles stale/pre-existing progress).
+  const [showCelebration, setShowCelebration] = useState(false);
+  const wasCompleteRef = useRef(isAllComplete); // true if already complete on load
+
+  useEffect(() => {
+    if (isAllComplete && !wasCompleteRef.current) {
+      setShowCelebration(true);
+    }
+    if (!isAllComplete) {
+      wasCompleteRef.current = false;
+    }
+  }, [isAllComplete]);
+
   /* Optimistic toggle — called by both ToggleComplete and BottomBar */
   const handleToggle = useCallback((nodeId: string, completed: boolean) => {
     setCompletedIds((prev) => {
@@ -64,11 +78,12 @@ export function LearnPageClient({
 
   return (
     <>
-      {/* ── Completion overlay ── */}
-      {isAllComplete && (
+      {/* ── Completion overlay — only when newly completed this session ── */}
+      {showCelebration && (
         <BlueprintComplete
           blueprintTitle={blueprint.title}
           totalNodes={nodes.length}
+          onDismiss={() => setShowCelebration(false)}
         />
       )}
 

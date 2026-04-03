@@ -24,6 +24,7 @@ export interface BlueprintNode {
   title: string;
   content_markdown: string;
   type: NodeType;
+  url?: string | null;
 }
 
 export interface Enrollment {

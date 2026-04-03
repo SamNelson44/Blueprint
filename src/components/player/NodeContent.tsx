@@ -2,7 +2,87 @@
 
 import ReactMarkdown from "react-markdown";
 import type { Components } from "react-markdown";
+import { ExternalLink } from "lucide-react";
 import type { BlueprintNode } from "@/lib/types";
+
+/* ─────────────────────────────────────────────
+   Video helpers
+   ───────────────────────────────────────────── */
+
+function getYouTubeId(url: string): string | null {
+  const patterns = [
+    /youtube\.com\/watch\?(?:.*&)?v=([a-zA-Z0-9_-]+)/,
+    /youtu\.be\/([a-zA-Z0-9_-]+)/,
+    /youtube\.com\/embed\/([a-zA-Z0-9_-]+)/,
+  ];
+  for (const pattern of patterns) {
+    const match = url.match(pattern);
+    if (match) return match[1];
+  }
+  return null;
+}
+
+function VideoEmbed({ url }: { url: string }) {
+  const youtubeId = getYouTubeId(url);
+
+  if (youtubeId) {
+    return (
+      <div className="w-full aspect-video border-2 border-white/30 overflow-hidden mb-8">
+        <iframe
+          src={`https://www.youtube.com/embed/${youtubeId}`}
+          title="Video"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowFullScreen
+          className="w-full h-full"
+        />
+      </div>
+    );
+  }
+
+  // Direct video file
+  return (
+    <div className="w-full border-2 border-white/30 overflow-hidden mb-8">
+      <video
+        src={url}
+        controls
+        className="w-full"
+      />
+    </div>
+  );
+}
+
+function LinkBlock({ url }: { url: string }) {
+  let display = url;
+  try {
+    display = new URL(url).hostname.replace(/^www\./, "");
+  } catch {
+    // keep raw url if invalid
+  }
+
+  return (
+    <div className="mb-8 border-2 border-[#D4FF00] shadow-[4px_4px_0px_0px_#D4FF00] bg-[#0A0A0A] p-5">
+      <p className="font-mono text-[10px] text-white/30 uppercase tracking-widest mb-3">
+        Resource Link
+      </p>
+      <a
+        href={url}
+        target="_blank"
+        rel="noopener noreferrer"
+        className={[
+          "inline-flex items-center gap-2 px-5 py-3",
+          "font-mono font-bold text-sm uppercase tracking-widest",
+          "bg-[#D4FF00] text-black border-2 border-black",
+          "shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]",
+          "hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)]",
+          "transition-[transform,box-shadow] duration-75",
+        ].join(" ")}
+      >
+        <ExternalLink size={14} />
+        {display} →
+      </a>
+    </div>
+  );
+}
 
 /* ─────────────────────────────────────────────
    Custom markdown components
@@ -130,6 +210,12 @@ export function NodeContent({ node }: NodeContentProps) {
         </h1>
         <div className="mt-4 h-1 w-16 bg-[#D4FF00]" />
       </header>
+
+      {/* Video embed */}
+      {node.type === "video" && node.url && <VideoEmbed url={node.url} />}
+
+      {/* Link block */}
+      {node.type === "link" && node.url && <LinkBlock url={node.url} />}
 
       {/* Markdown body */}
       {node.content_markdown ? (

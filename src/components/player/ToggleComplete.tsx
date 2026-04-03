@@ -1,7 +1,6 @@
 "use client";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useRouter } from "next/navigation";
 import { Check, Loader2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/cn";
@@ -65,7 +64,6 @@ export function ToggleComplete({
   onToggle,
 }: ToggleCompleteProps) {
   const queryClient = useQueryClient();
-  const router = useRouter();
 
   const { mutate, isPending } = useMutation({
     mutationFn: (markComplete: boolean) =>
@@ -82,9 +80,10 @@ export function ToggleComplete({
       queryClient.invalidateQueries({
         queryKey: ["progress", blueprintId, userId],
       });
-      // Bust the Next.js Router Cache so navigating away and back
-      // reflects the latest progress from the server.
-      router.refresh();
+      // Note: router.refresh() was removed here. The learn page uses
+      // force-dynamic so fresh progress is always fetched on navigation.
+      // Calling router.refresh() was causing LearnPageClient to remount
+      // mid-session, which reset the celebration state.
     },
   });
 

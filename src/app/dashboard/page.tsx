@@ -67,6 +67,35 @@ export default async function DashboardPage() {
       enrolled_at: string;
     }[];
 
+  // Fetch completed node counts for each enrolled blueprint
+  const enrolledBlueprintIds = enrolled.map((e) => e.id);
+  const completedByBlueprint = new Map<string, number>();
+
+  if (enrolledBlueprintIds.length > 0) {
+    const { data: enrolledNodes } = await supabase
+      .from("nodes")
+      .select("id, blueprint_id")
+      .in("blueprint_id", enrolledBlueprintIds);
+
+    const nodeToBlueprint = new Map<string, string>();
+    (enrolledNodes ?? []).forEach((n) => nodeToBlueprint.set(n.id, n.blueprint_id));
+
+    const enrolledNodeIds = (enrolledNodes ?? []).map((n) => n.id);
+    if (enrolledNodeIds.length > 0) {
+      const { data: progress } = await supabase
+        .from("user_progress")
+        .select("node_id")
+        .eq("user_id", user.id)
+        .eq("is_completed", true)
+        .in("node_id", enrolledNodeIds);
+
+      (progress ?? []).forEach((p) => {
+        const bpId = nodeToBlueprint.get(p.node_id);
+        if (bpId) completedByBlueprint.set(bpId, (completedByBlueprint.get(bpId) ?? 0) + 1);
+      });
+    }
+  }
+
   return (
     <div className="min-h-screen bg-black flex flex-col">
       <Navbar />
@@ -201,43 +230,73 @@ export default async function DashboardPage() {
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {enrolled.map((bp) => (
-                <div
-                  key={bp.id}
-                  className="flex flex-col border-2 border-white/30 bg-[#0A0A0A] shadow-[4px_4px_0px_0px_rgba(255,255,255,0.2)] p-5 gap-4"
-                >
-                  <div>
-                    <h3 className="font-sans font-black text-white text-base leading-snug">
-                      {bp.title}
-                    </h3>
-                    {bp.description && (
-                      <p className="mt-1 font-mono text-xs text-white/40 line-clamp-2">
-                        {bp.description}
-                      </p>
-                    )}
-                  </div>
+              {enrolled.map((bp) => {
+                const completed = completedByBlueprint.get(bp.id) ?? 0;
+                const total = bp.node_count;
+                const pct = total > 0 ? Math.round((completed / total) * 100) : 0;
+                const isFinished = total > 0 && completed >= total;
 
-                  <div className="flex items-center justify-between mt-auto pt-3 border-t border-white/10">
-                    <span className="font-mono text-xs text-white/30">
-                      {bp.node_count} steps
-                    </span>
-                    <Link
-                      href={`/blueprints/${bp.slug}/learn`}
-                      className={[
-                        "flex items-center gap-1.5 px-3 py-1.5",
-                        "font-mono text-xs font-bold uppercase tracking-widest",
-                        "bg-[#D4FF00] text-black border-2 border-black",
-                        "shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]",
-                        "hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)]",
-                        "active:translate-x-[2px] active:translate-y-[2px] active:shadow-none",
-                        "transition-[transform,box-shadow] duration-75",
-                      ].join(" ")}
-                    >
-                      <BookOpen size={11} /> Continue
-                    </Link>
+                return (
+                  <div
+                    key={bp.id}
+                    className="flex flex-col border-2 border-white/30 bg-[#0A0A0A] shadow-[4px_4px_0px_0px_rgba(255,255,255,0.2)] p-5 gap-4"
+                  >
+                    <div>
+                      <h3 className="font-sans font-black text-white text-base leading-snug">
+                        {bp.title}
+                      </h3>
+                      {bp.description && (
+                        <p className="mt-1 font-mono text-xs text-white/40 line-clamp-2">
+                          {bp.description}
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Progress bar */}
+                    {total > 0 && (
+                      <div className="flex flex-col gap-1.5">
+                        <div className="h-2 w-full bg-white/10 border border-white/10">
+                          <div
+                            className="h-full bg-[#D4FF00] transition-[width] duration-300"
+                            style={{ width: `${pct}%` }}
+                          />
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span className="font-mono text-[10px] text-white/30">
+                            {completed} / {total} steps
+                          </span>
+                          {isFinished ? (
+                            <span className="font-mono text-[10px] text-[#D4FF00] uppercase tracking-widest">
+                              ✓ Complete
+                            </span>
+                          ) : (
+                            <span className="font-mono text-[10px] text-white/30">
+                              {pct}%
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="flex items-center justify-end mt-auto pt-3 border-t border-white/10">
+                      <Link
+                        href={`/blueprints/${bp.slug}/learn`}
+                        className={[
+                          "flex items-center gap-1.5 px-3 py-1.5",
+                          "font-mono text-xs font-bold uppercase tracking-widest",
+                          "bg-[#D4FF00] text-black border-2 border-black",
+                          "shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]",
+                          "hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)]",
+                          "active:translate-x-[2px] active:translate-y-[2px] active:shadow-none",
+                          "transition-[transform,box-shadow] duration-75",
+                        ].join(" ")}
+                      >
+                        <BookOpen size={11} /> {isFinished ? "Review" : "Continue"}
+                      </Link>
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </section>

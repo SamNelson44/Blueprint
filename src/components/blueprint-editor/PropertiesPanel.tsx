@@ -100,6 +100,36 @@ export function PropertiesPanel({ node, onChange, onClose }: PropertiesPanelProp
           </div>
         </div>
 
+        {/* ── URL field (video + link types only) ── */}
+        {(node.type === "video" || node.type === "link") && (
+          <div className="flex flex-col gap-1.5">
+            <label className="font-mono text-[10px] text-white/40 uppercase tracking-widest">
+              {node.type === "video" ? "YouTube or Video URL" : "Link URL"}
+            </label>
+            <input
+              type="url"
+              value={node.url ?? ""}
+              onChange={(e) => onChange({ url: e.target.value || null })}
+              placeholder={
+                node.type === "video"
+                  ? "https://youtube.com/watch?v=..."
+                  : "https://example.com"
+              }
+              className={cn(
+                "w-full bg-black border-2 border-white/30 px-3 py-2",
+                "font-mono text-sm text-white placeholder-white/20",
+                "focus:outline-none focus:border-[#D4FF00]",
+                "transition-colors"
+              )}
+            />
+            {node.type === "video" && (
+              <p className="font-mono text-[10px] text-white/20">
+                YouTube links auto-embed. Direct .mp4 URLs also supported.
+              </p>
+            )}
+          </div>
+        )}
+
         {/* ── Markdown editor / preview ── */}
         <div className="flex flex-col gap-1.5 flex-1">
           {/* Editor tab bar */}
