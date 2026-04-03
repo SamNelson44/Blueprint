@@ -30,7 +30,7 @@ export default async function SettingsPage() {
         <div className="mb-8">
           <Link
             href="/dashboard"
-            className="flex items-center gap-1.5 font-mono text-xs text-white/40 hover:text-white transition-colors mb-4"
+            className="flex items-center gap-1.5 font-mono text-xs text-white/40 hover:text-[#D4FF00] transition-colors mb-4"
           >
             <ArrowLeft size={13} /> Dashboard
           </Link>

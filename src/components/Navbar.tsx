@@ -33,7 +33,7 @@ export async function Navbar() {
             <form action={signOut}>
               <button
                 type="submit"
-                className="font-mono text-sm text-white/40 hover:text-white px-3 py-1.5 transition-colors"
+                className="font-mono text-sm text-white/40 hover:text-[#D4FF00] px-3 py-1.5 transition-colors cursor-pointer"
               >
                 Sign out
               </button>
@@ -71,7 +71,7 @@ function NavLink({
   return (
     <Link
       href={href}
-      className="font-mono text-sm text-white/50 hover:text-white px-3 py-1.5 transition-colors"
+      className="font-mono text-sm text-white/50 hover:text-[#D4FF00] px-3 py-1.5 transition-colors"
     >
       {children}
     </Link>
