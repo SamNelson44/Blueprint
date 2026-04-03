@@ -10,6 +10,7 @@ if (!process.env.STRIPE_SECRET_KEY) {
  * any file with a NEXT_PUBLIC_ variable — it would expose the secret key.
  */
 export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-  apiVersion: "2025-03-31.basil",
+  // apiVersion: "2025-03-31.basil",
+  apiVersion: "2026-03-25.dahlia",
   typescript: true,
 });
