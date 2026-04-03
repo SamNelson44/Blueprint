@@ -1,6 +1,10 @@
 import { Suspense } from "react";
 import { notFound, redirect } from "next/navigation";
 import type { Metadata } from "next";
+
+// Always re-fetch from the DB — progress data is user-specific and changes
+// frequently; stale cached renders would show outdated completion state.
+export const dynamic = "force-dynamic";
 import { LearnPageClient } from "./LearnPageClient";
 import { PlayerSkeleton } from "@/components/player/PlayerSkeleton";
 import type { Blueprint, BlueprintNode } from "@/lib/types";

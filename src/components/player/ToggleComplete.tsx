@@ -1,6 +1,7 @@
 "use client";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
 import { Check, Loader2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/cn";
@@ -64,27 +65,32 @@ export function ToggleComplete({
   onToggle,
 }: ToggleCompleteProps) {
   const queryClient = useQueryClient();
+  const router = useRouter();
 
   const { mutate, isPending } = useMutation({
-    mutationFn: () => toggleProgressInDb(nodeId, userId, !isCompleted),
-    onMutate: () => {
+    mutationFn: (markComplete: boolean) =>
+      toggleProgressInDb(nodeId, userId, markComplete),
+    onMutate: (markComplete: boolean) => {
       // Optimistic — flip UI immediately before the DB round-trip.
-      onToggle(nodeId, !isCompleted);
+      onToggle(nodeId, markComplete);
     },
-    onError: () => {
-      // Roll back on failure.
-      onToggle(nodeId, isCompleted);
+    onError: (_err, markComplete) => {
+      // Roll back to the opposite of what we tried.
+      onToggle(nodeId, !markComplete);
     },
     onSettled: () => {
       queryClient.invalidateQueries({
         queryKey: ["progress", blueprintId, userId],
       });
+      // Bust the Next.js Router Cache so navigating away and back
+      // reflects the latest progress from the server.
+      router.refresh();
     },
   });
 
   return (
     <button
-      onClick={() => mutate()}
+      onClick={() => mutate(!isCompleted)}
       disabled={isPending}
       aria-label={isCompleted ? "Mark as incomplete" : "Mark as complete"}
       className={cn(
