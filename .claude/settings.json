@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx create-next-app@latest . --typescript --tailwind --eslint --app --src-dir --import-alias \"@/*\" --no-turbopack)",
+      "Bash(npx create-next-app@latest . --typescript --tailwind --eslint --app --src-dir --import-alias \"@/*\" --no-turbopack --yes)",
+      "Read(//c/Users/Sam/OneDrive/Desktop/**)",
+      "Bash(npx create-next-app@latest blueprint-app --typescript --tailwind --eslint --app --src-dir --import-alias \"@/*\" --no-turbopack --yes)",
+      "Bash(cp -r c:/Users/Sam/OneDrive/Desktop/blueprint-app/. c:/Users/Sam/OneDrive/Desktop/RoadmapAI/)",
+      "Bash(rm -rf c:/Users/Sam/OneDrive/Desktop/blueprint-app)",
+      "Bash(./node_modules/.bin/tsc --noEmit)",
+      "Bash(npm run:*)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:3001/)"
+    ]
+  }
+}
